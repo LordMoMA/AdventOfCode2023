@@ -78,7 +78,7 @@ func IsRoundPossible(round string) bool {
 }
 
 func main() {
-	total, err := ExtractFile("day2.txt")
+	total, err := ExtractFileAndCalcTotalGameID("day2.txt")
 	if err != nil {
 		log.Fatalf("error extracting file: %v", err)
 	}

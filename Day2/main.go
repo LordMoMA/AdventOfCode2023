@@ -26,7 +26,7 @@ func OpenFile(filename string) (*bufio.Scanner, error) {
 }
 
 // ExtractFile reads a file and calculates the total game ID.
-func ExtractFile(filename string) (int, error) {
+func ExtractFileAndCalcTotalGameID(filename string) (int, error) {
 	scanner, err := OpenFile(filename)
 	if err != nil {
 		return 0, err

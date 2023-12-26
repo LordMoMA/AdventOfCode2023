@@ -9,77 +9,78 @@ import (
 	"strings"
 )
 
-func extractFile(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Printf("file not found")
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	var result = 0
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		count := calculateGameID(line)
-		result += count
-	}
-	return result
+// Bag represents the available colors and their counts.
+var Bag = map[string]int{
+	"red":   12,
+	"blue":  14,
+	"green": 13,
 }
 
-func calculateGameID(line string) int {
-	bag := map[string]int{
-		"red":   12,
-		"blue":  14,
-		"green": 13,
-	}
-
-	var isPossible = true
-	var sum = 0
-	var gameID int
-
-	// for example:
-	// "Game 1: 1 red, 5 blue, 10 green; 5 green, 6 blue, 12 red; 4 red, 10 blue, 4 green"
-	parts := strings.Split(line, ":")
-	words := strings.Split(parts[0], " ")
-
-	gameID, err := strconv.Atoi(words[1])
+// OpenFile opens a file and returns a scanner.
+func OpenFile(filename string) (*bufio.Scanner, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		log.Printf("error converting gameID to int")
+		return nil, err
+	}
+	return bufio.NewScanner(file), nil
+}
+
+// ExtractFile reads a file and calculates the total game ID.
+func ExtractFile(filename string) (int, error) {
+	scanner, err := OpenFile(filename)
+	if err != nil {
+		return 0, err
 	}
 
-	rounds := strings.Split(parts[1], ";") // Fix delimiter here
+	var total = 0
+	for scanner.Scan() {
+		line := scanner.Text()
+		gameID, err := CalculateGameID(line)
+		if err != nil {
+			log.Printf("error calculating gameID: %v", err)
+			continue
+		}
+		total += gameID
+	}
+	return total, nil
+}
 
-	// 1 red, 5 blue, 10 green
+// CalculateGameID calculates the game ID from a line of text.
+func CalculateGameID(line string) (int, error) {
+	parts := strings.Split(line, ":")
+	gameID, err := strconv.Atoi(strings.Split(parts[0], " ")[1])
+	if err != nil {
+		return 0, fmt.Errorf("error converting gameID to int: %w", err)
+	}
+
+	rounds := strings.Split(parts[1], ";")
 	for _, round := range rounds {
-		isPossible = true
-		colorTotals := map[string]int{"red": 0, "green": 0, "blue": 0}
-		colors := strings.Split(round, ",") // 1 red
-
-		for _, color := range colors {
-			count := strings.Split(strings.TrimSpace(color), " ")
-			num, _ := strconv.Atoi(count[0])
-			colorTotals[count[1]] += num // count[1] is the color in a set within a round
-			if colorTotals[count[1]] > bag[count[1]] {
-				isPossible = false
-				break
-			}
-		}
-
-		if !isPossible {
-			break
+		if !IsRoundPossible(round) {
+			return 0, nil
 		}
 	}
+	return gameID, nil
+}
 
-	if isPossible {
-		sum += gameID
+// IsRoundPossible checks if a round is possible given the bag of colors.
+func IsRoundPossible(round string) bool {
+	colorTotals := map[string]int{"red": 0, "green": 0, "blue": 0}
+	colors := strings.Split(round, ",")
+	for _, color := range colors {
+		count := strings.Split(strings.TrimSpace(color), " ")
+		num, _ := strconv.Atoi(count[0])
+		colorTotals[count[1]] += num
+		if colorTotals[count[1]] > Bag[count[1]] {
+			return false
+		}
 	}
-	return sum
+	return true
 }
 
 func main() {
-	// part one
-	result := extractFile("day2.txt")
-	fmt.Println(result)
+	total, err := ExtractFile("day2.txt")
+	if err != nil {
+		log.Fatalf("error extracting file: %v", err)
+	}
+	fmt.Println(total)
 }

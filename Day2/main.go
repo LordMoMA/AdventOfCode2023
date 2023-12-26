@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// part one
+
 // Bag represents the available colors and their counts.
 var Bag = map[string]int{
 	"red":   12,
@@ -77,10 +79,57 @@ func IsRoundPossible(round string) bool {
 	return true
 }
 
+// part two
+func ExtractFileAndCalcPowerSum(filename string) (int, error) {
+	scanner, err := OpenFile(filename)
+	if err != nil {
+		return 0, err
+	}
+
+	var total = 0
+	for scanner.Scan() {
+		line := scanner.Text()
+		power, err := CalculatePower(line)
+		if err != nil {
+			log.Printf("error calculating power: %v", err)
+			continue
+		}
+		total += power
+	}
+	return total, nil
+}
+
+// "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
+func CalculatePower(line string) (int, error) {
+	parts := strings.Split(line, ": ")
+	rounds := strings.Split(parts[1], "; ")
+	maxColor := map[string]int{"red": 0, "green": 0, "blue": 0}
+	for _, round := range rounds {
+		colors := strings.Split(round, ",")
+		for _, colorset := range colors {
+			colorset := strings.Split(strings.TrimSpace(colorset), " ")
+			count, _ := strconv.Atoi(colorset[0])
+			color := colorset[1]
+			if maxColor[color] < count {
+				maxColor[color] = count
+			}
+		}
+	}
+	return maxColor["red"] * maxColor["green"] * maxColor["blue"], nil
+}
+
 func main() {
+	// part one
 	total, err := ExtractFileAndCalcTotalGameID("day2.txt")
 	if err != nil {
 		log.Fatalf("error extracting file: %v", err)
 	}
 	fmt.Println(total)
+
+	// part two
+	power, err := ExtractFileAndCalcPowerSum("day2.txt")
+	if err != nil {
+		log.Fatalf("error extracting file: %v", err)
+	}
+	fmt.Println(power)
 }

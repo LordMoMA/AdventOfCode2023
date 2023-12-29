@@ -80,6 +80,7 @@ func CalcSumNearSymbol(lines []string) int {
 				for k := range dx {
 					ni, nj := i+dx[k], start+dy[k] // check the start coordinate of the number
 					// if the character at the new coordinates is not a dot and not a digit (i.e., it's a symbol).
+					//In ASCII, the characters '0' to '9' have consecutive values, so any character with a value less than '0' or greater than '9' is not a digit.
 					if ni >= 0 && ni < len(lines) && nj >= 0 && nj < len(lines[i]) && lines[ni][nj] != '.' && (lines[ni][nj] < '0' || lines[ni][nj] > '9') {
 						key := fmt.Sprintf("%d,%d", i, start)
 						if _, ok := seen[key]; !ok {

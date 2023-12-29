@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func ExtrctFileAndCalcSumNearSymbol(filename string) (int, error) {
@@ -105,12 +106,81 @@ func CalcSumNearSymbol(lines []string) int {
 	return total
 }
 
+// part two
+
+func ExtrctFileAndCalcGearRatio(filename string) (int, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return 0, err
+	}
+	sum := CalcGearRatio(lines)
+	return sum, nil
+}
+
+func CalcGearRatio(lines []string) int {
+	dx := []int{-1, 0, 1, 0, -1, -1, 1, 1}
+	dy := []int{0, 1, 0, -1, -1, 1, -1, 1}
+	total := 0
+
+	for i := range lines {
+		for j := range lines[i] {
+			if lines[i][j] == '*' {
+				nums := []int{}
+				seen := make(map[string]bool)
+				for k := 0; k < 8; k++ {
+					ni, nj := i+dx[k], j+dy[k]
+					if ni >= 0 && ni < len(lines) && nj >= 0 && nj < len(lines[ni]) && lines[ni][nj] >= '0' && lines[ni][nj] <= '9' {
+						start, end := nj, nj
+						// Find the start of the number
+						for start-1 >= 0 && lines[ni][start-1] >= '0' && lines[ni][start-1] <= '9' {
+							start--
+						}
+						// Find the end of the number
+						for end+1 < len(lines[ni]) && lines[ni][end+1] >= '0' && lines[ni][end+1] <= '9' {
+							end++
+						}
+
+						key := fmt.Sprintf("%d,%d", ni, end)
+						if _, exists := seen[key]; !exists {
+							num, _ := strconv.Atoi(strings.TrimSpace(lines[ni][start : end+1]))
+							nums = append(nums, num)
+							seen[key] = true
+						}
+					}
+				}
+				if len(nums) == 2 {
+					total += nums[0] * nums[1]
+				}
+
+			}
+		}
+	}
+
+	return total
+}
+
 func main() {
 	// part one
 	sum, err := ExtrctFileAndCalcSumNearSymbol("day3.txt")
 	if err != nil {
 		panic(err)
 	}
-	println(sum)
+	fmt.Printf("sum: %d\n", sum)
 
+	// part two
+	sum2, err := ExtrctFileAndCalcGearRatio("day3.txt")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("sum2: %d\n", sum2)
 }

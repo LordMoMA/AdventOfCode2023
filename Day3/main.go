@@ -150,7 +150,7 @@ func CalcGearRatio(lines []string) int {
 							end++
 						}
 
-						key := fmt.Sprintf("%d,%d", ni, end)
+						key := fmt.Sprintf("%d,%d", ni, end) // only need to cache start or end
 						if _, exists := seen[key]; !exists {
 							num, _ := strconv.Atoi(strings.TrimSpace(lines[ni][start : end+1]))
 							nums = append(nums, num)
